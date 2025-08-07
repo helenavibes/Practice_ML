@@ -1,5 +1,9 @@
 from .models import MLModel, User, PredictionTask, PredictionResult, DataValidationResult
 from abc import ABC, abstractmethod
+from .models import MLModel, User, PredictionTask, PredictionResult, DataValidationResult, TransactionType, Transaction
+from abc import ABC, abstractmethod
+from typing import List, Dict, Optional
+
 
 class ServiceInterface(ABC):
     @abstractmethod

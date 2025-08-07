@@ -20,6 +20,7 @@ class User:
         self.__email = email
         self.__password_hash = password_hash
         self.__balance = balance
+        self.history = []
 
     @property
     def user_id(self) -> int:
@@ -69,6 +70,10 @@ class MLModel:
     @property
     def name(self) -> str:
         return self.__name
+
+    @property
+    def model_type(self) -> MLModelType:
+        return self.__model_type  # 👈 Этого не хватало!
 
     @property
     def cost_per_request(self) -> float:
