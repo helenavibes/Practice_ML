@@ -1,7 +1,21 @@
 from enum import Enum
 from datetime import datetime
-from typing import List, Dict, Any, Optional
-from abc import ABC, abstractmethod
+from typing import List, Dict, Any
+from main import PasswordHasher
+import bcrypt
+
+class PasswordHasher:
+    @staticmethod
+    def hash_password(password: str) -> str:
+        salt = bcrypt.gensalt()
+        return bcrypt.hashpw(password.encode('utf-8'), salt).decode('utf-8')
+
+    @staticmethod
+    def check_password(hashed_password: str, password: str) -> bool:
+        return bcrypt.checkpw(
+            password.encode('utf-8'),
+            hashed_password.encode('utf-8')
+        )
 
 class MLModelType(Enum):
     CLASSIFICATION = "classification"
@@ -14,11 +28,11 @@ class TransactionType(Enum):
     ADMIN_REFILL = "admin_refill"
 
 class User:
-    def __init__(self, user_id: int, username: str, email: str, password_hash: str, balance: float = 0.0):
+    def __init__(self, user_id: int, username: str, email: str, password: str, balance: float = 0.0):
         self.__user_id = user_id
         self.__username = username
         self.__email = email
-        self.__password_hash = password_hash
+        self.__password = password
         self.__balance = balance
         self.history = []
 
@@ -43,8 +57,8 @@ class User:
             raise ValueError("Insufficient funds")
         self.__balance += amount
 
-    def check_password(self, password_hash: str) -> bool:
-        return self.__password_hash == password_hash
+    def check_password(self, password: str) -> bool:
+        return PasswordHasher.check_password(self.__password, password)
 
 class Admin(User):
     def __init__(self, user_id: int, username: str, email: str, password_hash: str):
@@ -73,7 +87,7 @@ class MLModel:
 
     @property
     def model_type(self) -> MLModelType:
-        return self.__model_type  # 👈 Этого не хватало!
+        return self.__model_type
 
     @property
     def cost_per_request(self) -> float:
@@ -119,43 +133,22 @@ class DataValidationResult:
     def has_valid_data(self) -> bool:
         return len(self.__valid_data) > 0
 
-class PredictionResult:
-    def __init__(self, result_id: int, user_id: int, model_id: int,
-                 input_data: List[Dict], predictions: List[Any], cost: float):
-        self.__result_id = result_id
-        self.__user_id = user_id
-        self.__model_id = model_id
-        self.__input_data = input_data
-        self.__predictions = predictions
-        self.__cost = cost
-        self.__timestamp = datetime.now()
-
-    @property
-    def summary(self) -> Dict[str, Any]:
-        return {
-            "result_id": self.__result_id,
-            "model_id": self.__model_id,
-            "input_data_count": len(self.__input_data),
-            "predictions_sample": self.__predictions[:3],
-            "cost": self.__cost,
-            "timestamp": self.__timestamp
-        }
-
 class PredictionTask:
     def __init__(self, task_id: int, user_id: int, model_id: int, raw_data: List[Dict]):
-        self.__task_id = task_id
-        self.__user_id = user_id
-        self.__model_id = model_id
-        self.__raw_data = raw_data
-        self.__status = "pending"
-        self.__created_at = datetime.now()
+        self.task_id = task_id
+        self.user_id = user_id
+        self.model_id = model_id
+        self.raw_data = raw_data
+        self.status = "pending"
+        self.created_at = datetime.now()
+        self.result = None
 
     def validate_data(self) -> DataValidationResult:
         valid_data = []
         invalid_data = []
         errors = []
 
-        for item in self.__raw_data:
+        for item in self.raw_data:
             if self._is_valid(item):
                 valid_data.append(item)
             else:
@@ -165,5 +158,26 @@ class PredictionTask:
         return DataValidationResult(valid_data, invalid_data, errors)
 
     def _is_valid(self, data_item: Dict) -> bool:
-        # Заглушка для реальной валидации
         return True
+
+class PredictionResult:
+    def __init__(self, task: PredictionTask, predictions: List[Any], cost: float):
+        self.result_id = id(self)
+        self.task_id = task.task_id
+        self.user_id = task.user_id
+        self.model_id = task.model_id
+        self.input_data = task.raw_data
+        self.predictions = predictions
+        self.cost = cost
+        self.timestamp = datetime.now()
+
+    @property
+    def summary(self) -> Dict[str, Any]:
+        return {
+            "result_id": self.result_id,
+            "model_id": self.model_id,
+            "input_data_count": len(self.input_data),
+            "predictions_sample": self.predictions[:3] if self.predictions else [],
+            "cost": self.cost,
+            "timestamp": self.timestamp
+        }

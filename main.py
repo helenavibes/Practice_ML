@@ -3,23 +3,25 @@ from datetime import datetime
 from enum import Enum
 from typing import List, Dict, Any, Optional
 import bcrypt
+from app import create_app
 
+app = create_app()
+
+if __name__ == '__main__':
+    app.run(debug=True)
 
 class PasswordHasher:
     @staticmethod
     def hash_password(password: str) -> str:
-        """Хеширование пароля с использованием bcrypt"""
         salt = bcrypt.gensalt()
         return bcrypt.hashpw(password.encode('utf-8'), salt).decode('utf-8')
 
     @staticmethod
     def check_password(hashed_password: str, password: str) -> bool:
-        """Проверка пароля"""
         return bcrypt.checkpw(
             password.encode('utf-8'),
             hashed_password.encode('utf-8')
         )
-
 
 class User:
     def __init__(self, user_id: int, username: str, email: str, password_hash: str):
@@ -170,7 +172,6 @@ class PredictionResult:
             "timestamp": self.__timestamp
         }
 
-
 class PredictionTask:
     def __init__(self, task_id: int, user_id: int, model_id: int, raw_data: List[Dict]):
         self.__task_id = task_id
@@ -284,3 +285,8 @@ class TransactionRepository:
 
     def get_user_history(self, user_id: int) -> List[Transaction]:
         pass
+
+
+# Create Blueprint instance
+class Blueprint:
+    pass

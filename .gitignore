@@ -1,2 +1,5 @@
 .env
-echo ".idea/"
+.idea/
+__pycache__/
+*.pyc
+database/app_data.db
