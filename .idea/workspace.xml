@@ -5,20 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="3376dde9-f16b-49d8-8c79-626f85df2a56" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.dockerignore" beforeDir="false" afterPath="$PROJECT_DIR$/.dockerignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/PracticeML.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/PracticeML.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/api/routes.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/api/routes.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/api/schemas.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/api/schemas.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/core/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/core/models.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/core/services.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/core/services.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/src/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/database/app_data.db" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/database/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/database/models.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docker-compose.yml" beforeDir="false" afterPath="$PROJECT_DIR$/docker-compose.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -127,7 +115,7 @@
       <workItem from="1754315146456" duration="1842000" />
       <workItem from="1754323526482" duration="17000" />
       <workItem from="1754323629927" duration="78365000" />
-      <workItem from="1755501514962" duration="7650000" />
+      <workItem from="1755501514962" duration="10245000" />
     </task>
     <servers />
   </component>

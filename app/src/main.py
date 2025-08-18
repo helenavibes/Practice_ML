@@ -1,6 +1,7 @@
 import os
 from fastapi import FastAPI
 from app.src.api.routes import router
+from app.src.core.services import MLService
 from database.operations import DBOperations
 
 app = FastAPI()
@@ -12,9 +13,10 @@ DB_URL = f"sqlite:///{DB_PATH}"
 @app.on_event("startup")
 async def startup_event():
     app.state.db = DBOperations(db_url=DB_URL)
+    app.state.ml_service = MLService()
 
 @app.on_event("shutdown")
 async def shutdown_event():
     pass
 
-app.include_router(router)
+app.include_router(router, prefix="/api")
