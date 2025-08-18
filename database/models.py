@@ -1,5 +1,5 @@
 from sqlalchemy import Column, Integer, String, Float, Enum, DateTime, ForeignKey, JSON
-from sqlalchemy.orm import declarative_base
+from sqlalchemy.orm import declarative_base, relationship
 import enum
 from datetime import datetime
 import bcrypt
@@ -51,6 +51,7 @@ class PredictionTask(Base):
     input_data = Column(JSON, nullable=False)
     status = Column(String, default='pending')
     created_at = Column(DateTime, default=datetime.utcnow)
+    result = relationship("PredictionResult", uselist=False, back_populates="task")
 
 class PredictionResult(Base):
     __tablename__ = 'prediction_results'
@@ -59,3 +60,4 @@ class PredictionResult(Base):
     predictions = Column(JSON, nullable=False)
     cost = Column(Float, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
+    task = relationship("PredictionTask", back_populates="result")

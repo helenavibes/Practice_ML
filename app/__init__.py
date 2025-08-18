@@ -1,8 +1,7 @@
-# File: app/__init__.py
-from flask import Flask
-from .src.routes import bp
+from fastapi import FastAPI
+from app.src.api.routes import router
 
 def create_app():
-    app = Flask(__name__)
-    app.register_blueprint(bp)
+    app = FastAPI()
+    app.include_router(router)
     return app

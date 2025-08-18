@@ -1,7 +1,7 @@
 from enum import Enum
 from datetime import datetime
 from typing import List, Dict, Any
-from main import PasswordHasher
+from app.src.utils.security import PasswordHasher
 import bcrypt
 
 class PasswordHasher:

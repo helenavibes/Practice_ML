@@ -15,5 +15,6 @@ env/
 docker-compose.yml
 .git
 .gitignore
+*.db
 data/
 models/

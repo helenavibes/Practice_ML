@@ -63,4 +63,5 @@ services:
         condition: service_healthy
 
 volumes:
+  rabbitmq_data:
   postgres_data:
