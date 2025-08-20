@@ -1,7 +1,6 @@
-from .models import MLModel, User, PredictionTask, PredictionResult, DataValidationResult, MLModelType
+from .models import MLModel, User, PredictionTask, PredictionResult, DataValidationResult
 from database.operations import DBOperations
 import json
-
 
 class MLService:
     def __init__(self, db: DBOperations):
@@ -26,7 +25,7 @@ class MLService:
         db_task = self.db.create_prediction_task(
             user_id=user.user_id,
             model_name=model.name,
-            input_data=json.dumps(data)
+            input_data=data  # Убрали json.dumps()
         )
 
         return PredictionTask(
@@ -51,7 +50,7 @@ class MLService:
         # Сохраняем результат в БД
         db_result = self.db.create_prediction_result(
             task_id=task.task_id,
-            predictions_str=json.dumps(predictions),
+            predictions=predictions,  # Исправлено
             cost=cost
         )
 

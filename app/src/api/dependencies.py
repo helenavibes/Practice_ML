@@ -1,16 +1,25 @@
-from fastapi import Request
+from database.operations import DBOperations
 from database.repositories import DatabaseUserRepository
 from app.src.core.services import MLService
+from sqlalchemy import create_engine
+import os
 
 
-async def get_db(request: Request):
-    return request.app.state.db
+def get_db_operations():
+    DB_USER = os.getenv("POSTGRES_USER")
+    DB_PASSWORD = os.getenv("POSTGRES_PASSWORD")
+    DB_HOST = os.getenv("POSTGRES_HOST", "database")
+    DB_PORT = os.getenv("POSTGRES_PORT", "5432")
+    DB_NAME = os.getenv("POSTGRES_DB")
+
+    db_url = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+    return DBOperations(db_url)
 
 
-async def get_user_repo(request: Request) -> DatabaseUserRepository:
-    db = await get_db(request)
-    return DatabaseUserRepository(db)
+def get_user_repo():
+    return DatabaseUserRepository(get_db_operations())
 
 
-async def get_ml_service(request: Request) -> MLService:
-    return request.app.state.ml_service
+def get_ml_service():
+    db_ops = get_db_operations()
+    return MLService(db_ops)

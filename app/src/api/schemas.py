@@ -1,20 +1,26 @@
-from pydantic import BaseModel, EmailStr
-from typing import List, Dict
+from pydantic import BaseModel
+from typing import List, Dict, Any
 from datetime import datetime
 from enum import Enum
 
 class UserCreate(BaseModel):
     username: str
-    email: EmailStr
+    email: str
     password: str
 
 class UserLogin(BaseModel):
     username: str
     password: str
 
+class ModelResponse(BaseModel):
+    id: int
+    name: str
+    type: str
+    cost: float
+
 class PredictionRequest(BaseModel):
     user_id: int
-    data: List[Dict]
+    data: List[Dict[str, Any]]
 
 class ModelResponse(BaseModel):
     id: int
@@ -32,7 +38,7 @@ class TransactionOut(BaseModel):
     id: int
     user_id: int
     amount: float
-    transaction_type: TransactionTypeEnum
+    transaction_type: str
     timestamp: datetime
     description: str | None = None
 

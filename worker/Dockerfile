@@ -5,25 +5,25 @@ WORKDIR /app
 # Установка системных зависимостей
 RUN apt-get update && apt-get install -y \
     build-essential \
-    libpq-dev \
     curl \
     postgresql-client \
     && rm -rf /var/lib/apt/lists/*
 
 # Копирование и установка зависимостей
 COPY requirements.txt .
-RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Копирование приложения
-COPY . .
+# Копирование кода воркера и модели
+COPY worker.py .
+COPY ml_model/ ./ml_model/
+COPY rabbitmq.py .
 
-# Скрипт ожидания БД
+# Копирование скрипта ожидания БД и установка прав
 COPY wait-for-db.sh /wait-for-db.sh
 RUN chmod +x /wait-for-db.sh
 
 # Переменные окружения
 ENV PYTHONPATH=/app
 
-# Команда по умолчанию
-CMD ["/wait-for-db.sh", "uvicorn", "app.src.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Команда запуска
+CMD ["/wait-for-db.sh", "database", "python", "worker.py"]

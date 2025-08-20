@@ -91,7 +91,7 @@ class DBOperations:
             task = PredictionTask(
                 user_id=user_id,
                 model_name=model_name,
-                input_data=json.dumps(input_data)  # сериализация JSON
+                input_data=input_data
             )
             session.add(task)
             session.commit()
@@ -119,7 +119,7 @@ class DBOperations:
 
             result = PredictionResult(
                 task_id=task_id,
-                predictions=json.dumps(predictions),
+                predictions=predictions,
                 cost=cost
             )
             session.add(result)
