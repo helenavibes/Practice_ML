@@ -3,8 +3,9 @@ import os
 import bcrypt
 import json
 from sqlalchemy.orm import Session
-from sqlalchemy import create_engine, inspect
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy import create_engine
+import psycopg2
+from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 
 # Добавляем родительскую директорию в путь поиска модулей
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))

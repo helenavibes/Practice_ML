@@ -2,28 +2,26 @@ FROM python:3.9-slim
 
 WORKDIR /app
 
-# Установка системных зависимостей
 RUN apt-get update && apt-get install -y \
     build-essential \
-    libpq-dev \
     curl \
     postgresql-client \
     && rm -rf /var/lib/apt/lists/*
 
-# Копирование и установка зависимостей
+# Копируем requirements из корня
 COPY requirements.txt .
-RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Копирование приложения
-COPY . .
+# Копируем файлы worker
+COPY worker/worker.py .
+COPY worker/rabbitmq.py .
+COPY ml_model/ ./ml_model/
 
-# Скрипт ожидания БД
+# Копируем общие скрипты из корня
 COPY wait-for-db.sh /wait-for-db.sh
 RUN chmod +x /wait-for-db.sh
 
-# Переменные окружения
 ENV PYTHONPATH=/app
 
-# Команда по умолчанию
-CMD ["/wait-for-db.sh", "uvicorn", "app.src.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Оставляем команду из Dockerfile
+CMD ["/wait-for-db.sh", "database", "python", "worker.py"]
