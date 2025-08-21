@@ -2,17 +2,38 @@ from abc import ABC, abstractmethod
 from datetime import datetime
 from enum import Enum
 from typing import List, Dict, Any, Optional
+import bcrypt
+from app import create_app
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
+app = create_app()
+
+if __name__ == '__main__':
+    import uvicorn
+    uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)
+
+class PasswordHasher:
+    @staticmethod
+    def hash_password(password: str) -> str:
+        salt = bcrypt.gensalt()
+        return bcrypt.hashpw(password.encode('utf-8'), salt).decode('utf-8')
+
+    @staticmethod
+    def check_password(hashed_password: str, password: str) -> bool:
+        return bcrypt.checkpw(
+            password.encode('utf-8'),
+            hashed_password.encode('utf-8')
+        )
 
 class User:
-    def __init__(self, user_id: int, username: str, email: str, password_hash: str, balance: float = 0.0):
+    def __init__(self, user_id: int, username: str, email: str, password_hash: str):
         self.__user_id = user_id
         self.__username = username
         self.__email = email
         self.__password_hash = password_hash
-        self.__balance = balance
 
-    # Getters
     @property
     def user_id(self) -> int:
         return self.__user_id
@@ -25,32 +46,38 @@ class User:
     def email(self) -> str:
         return self.__email
 
+    def check_password(self, password: str) -> bool:
+        return PasswordHasher.check_password(self.__password_hash, password)
+
+
+class Balance:
+    def __init__(self, user_id: int, current_balance: float = 0.0):
+        self.__user_id = user_id
+        self.__balance = current_balance
+
     @property
-    def balance(self) -> float:
+    def user_id(self) -> int:
+        return self.__user_id
+
+    @property
+    def current_balance(self) -> float:
         return self.__balance
 
-    # Setters
     def update_balance(self, amount: float) -> None:
-        """Обновление баланса с валидацией"""
         if self.__balance + amount < 0:
             raise ValueError("Insufficient funds")
         self.__balance += amount
 
-    def check_password(self, password_hash: str) -> bool:
-        """Проверка пароля"""
-        return self.__password_hash == password_hash
-
 
 class Admin(User):
     def __init__(self, user_id: int, username: str, email: str, password_hash: str):
-        super().__init__(user_id, username, email, password_hash, balance=0.0)
+        super().__init__(user_id, username, email, password_hash)
         self.__is_admin = True
 
-    def replenish_user_balance(self, user: User, amount: float) -> None:
-        """Пополнение баланса пользователя (админ-функция)"""
+    def replenish_user_balance(self, balance: Balance, amount: float) -> None:
         if amount <= 0:
             raise ValueError("Amount must be positive")
-        user.update_balance(amount)
+        balance.update_balance(amount)
 
 
 class MLModelType(Enum):
@@ -66,7 +93,6 @@ class MLModel:
         self.__model_type = model_type
         self.__cost_per_request = cost_per_request
 
-    # Getters
     @property
     def model_id(self) -> int:
         return self.__model_id
@@ -95,7 +121,6 @@ class Transaction:
         self.__type = transaction_type
         self.__timestamp = timestamp
 
-    # Getters
     @property
     def transaction_id(self) -> int:
         return self.__transaction_id
@@ -116,7 +141,6 @@ class DataValidationResult:
         self.__invalid_data = invalid_data
         self.__errors = errors
 
-    # Getters
     @property
     def valid_data(self) -> List[Dict]:
         return self.__valid_data
@@ -141,7 +165,6 @@ class PredictionResult:
         self.__cost = cost
         self.__timestamp = datetime.now()
 
-    # Getters
     @property
     def summary(self) -> Dict[str, Any]:
         return {
@@ -153,7 +176,6 @@ class PredictionResult:
             "timestamp": self.__timestamp
         }
 
-
 class PredictionTask:
     def __init__(self, task_id: int, user_id: int, model_id: int, raw_data: List[Dict]):
         self.__task_id = task_id
@@ -164,11 +186,6 @@ class PredictionTask:
         self.__created_at = datetime.now()
 
     def validate_data(self) -> DataValidationResult:
-        """Валидация данных (заглушка для реализации)"""
-        # Реальная реализация должна проверять:
-        # 1. Соответствие схеме данных модели
-        # 2. Корректность типов данных
-        # 3. Допустимые диапазоны значений
         valid_data = []
         invalid_data = []
         errors = []
@@ -183,8 +200,6 @@ class PredictionTask:
         return DataValidationResult(valid_data, invalid_data, errors)
 
     def _is_valid(self, data_item: Dict) -> bool:
-        """Проверка валидности элемента данных (заглушка)"""
-        # Реальная логика валидации должна быть специфичной для модели
         return True
 
 
@@ -196,15 +211,11 @@ class ServiceInterface(ABC):
 
 class RESTInterface(ServiceInterface):
     def process_prediction_request(self, user_id: int, model_id: int, data: List[Dict]) -> PredictionResult:
-        """Обработка запроса через REST API"""
-        # Реализация логики REST
         pass
 
 
 class TelegramInterface(ServiceInterface):
     def process_prediction_request(self, user_id: int, model_id: int, data: List[Dict]) -> PredictionResult:
-        """Обработка запроса через Telegram Bot"""
-        # Реализация логики Telegram
         pass
 
 
@@ -216,35 +227,35 @@ class MLService:
     def register_model(self, model: MLModel) -> None:
         self.__models[model.model_id] = model
 
-    def create_prediction_task(self, user: User, model_id: int, data: List[Dict]) -> PredictionTask:
-        """Создание задачи на предсказание с проверкой баланса"""
+    def create_prediction_task(self, user_balance: Balance, model_id: int, data: List[Dict]) -> PredictionTask:
         model = self.__models.get(model_id)
         if not model:
             raise ValueError("Model not found")
 
-        # Проверка баланса
-        if user.balance < model.cost_per_request:
+        total_cost = model.cost_per_request * len(data)
+        if user_balance.current_balance < total_cost:
             raise ValueError("Insufficient balance")
 
         task = PredictionTask(
             task_id=len(self.__task_queue) + 1,
-            user_id=user.user_id,
+            user_id=user_balance.user_id,
             model_id=model_id,
             raw_data=data
         )
         self.__task_queue.append(task)
         return task
 
-    def process_task(self, task: PredictionTask) -> PredictionResult:
-        """Обработка задачи (реальная реализация через RabbitMQ)"""
-        # Здесь будет интеграция с очередью сообщений
+    def process_task(self, task: PredictionTask, user_balance: Balance) -> PredictionResult:
         validation_result = task.validate_data()
 
         if not validation_result.has_valid_data:
             raise ValueError("No valid data for prediction")
 
-        # Заглушка для ML обработки
+        model = self.__models[task.model_id]
         predictions = [f"result_{i}" for i in range(len(validation_result.valid_data))]
+
+        actual_cost = model.cost_per_request * len(validation_result.valid_data)
+        user_balance.update_balance(-actual_cost)
 
         return PredictionResult(
             result_id=len(validation_result.valid_data) + 1,
@@ -252,25 +263,34 @@ class MLService:
             model_id=task.model_id,
             input_data=validation_result.valid_data,
             predictions=predictions,
-            cost=self.__models[task.model_id].cost_per_request * len(validation_result.valid_data)
+            cost=actual_cost
         )
 
 
 class UserRepository:
-    def get_user_by_credentials(self, username: str, password_hash: str) -> Optional[User]:
-        """Получение пользователя по учетным данным"""
+    def get_user_by_credentials(self, username: str, password: str) -> Optional[User]:
         pass
 
     def get_user_by_id(self, user_id: int) -> Optional[User]:
-        """Получение пользователя по ID"""
+        pass
+
+
+class BalanceRepository:
+    def get_user_balance(self, user_id: int) -> Optional[Balance]:
+        pass
+
+    def update_user_balance(self, balance: Balance) -> None:
         pass
 
 
 class TransactionRepository:
     def log_transaction(self, user_id: int, amount: float, transaction_type: TransactionType) -> None:
-        """Логирование транзакции"""
         pass
 
     def get_user_history(self, user_id: int) -> List[Transaction]:
-        """Получение истории транзакций пользователя"""
         pass
+
+
+# Create Blueprint instance
+class Blueprint:
+    pass
